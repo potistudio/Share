@@ -1,5 +1,18 @@
 # macOS dummy file
 .DS_Store
 
+# Node.js dependencies
+node_modules/
+
+# SvelteKit artifacts
+.svelte-kit/
+
+# Cloudflare artifacts
+.wrangler/
+
+# Environment variables
+.env
+!.env.example
+
 # Personal references
 refs/
