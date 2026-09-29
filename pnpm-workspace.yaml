@@ -4,5 +4,4 @@ allowBuilds:
     esbuild: true
 
 engineStrict: true
-# 公開から7日(10080分)未満のバージョンは入れない
 minimumReleaseAge: 10080
