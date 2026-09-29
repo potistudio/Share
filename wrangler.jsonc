@@ -2,14 +2,18 @@
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "share",
 	"compatibility_date": "2026-06-25",
-	"compatibility_flags": [
-		"nodejs_als"
-	],
+	"compatibility_flags": ["nodejs_als"],
 	"main": ".svelte-kit/cloudflare/_worker.js",
 	"assets": {
 		"binding": "ASSETS",
 		"directory": ".svelte-kit/cloudflare"
 	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "share"
+		}
+	],
 	"workers_dev": true,
 	"preview_urls": true
 }
