@@ -24,7 +24,8 @@
     "test": "npm run test:unit -- --run",
     "gen": "wrangler types",
     "db:migrate": "wrangler d1 migrations apply DB --local",
-    "db:migrate:remote": "wrangler d1 migrations apply DB --remote"
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "invite:owner": "node scripts/create-owner-invite.js"
   },
   "devDependencies": {
     "@simplewebauthn/browser": "^14.0.0",
