@@ -57,6 +57,14 @@ export async function invalidateSession(db: D1Database, cookies: Cookies): Promi
 	cookies.delete(SESSION_COOKIE, { path: "/" });
 }
 
+export async function countActiveSessions(db: D1Database): Promise<number> {
+	const row = await db
+		.prepare("SELECT COUNT(*) AS count FROM sessions WHERE expires_at > ?")
+		.bind(Date.now())
+		.first<{ count: number }>();
+	return row?.count ?? 0;
+}
+
 function setSessionCookie(cookies: Cookies, token: string, expiresAt: number): void {
 	cookies.set(SESSION_COOKIE, token, {
 		path: "/",

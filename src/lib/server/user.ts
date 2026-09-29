@@ -35,10 +35,17 @@ export async function createUser(
 	]);
 }
 
-export async function listUsers(db: D1Database): Promise<(User & { createdAt: number })[]> {
+export type UserSummary = User & { createdAt: number; lastLoginAt: number | null };
+
+export async function listUsers(db: D1Database): Promise<UserSummary[]> {
 	const { results } = await db
-		.prepare("SELECT id, name, role, created_at AS createdAt FROM users ORDER BY created_at")
-		.all<User & { createdAt: number }>();
+		.prepare(
+			`SELECT u.id, u.name, u.role, u.created_at AS createdAt, MAX(c.last_used_at) AS lastLoginAt
+			FROM users u LEFT JOIN credentials c ON c.user_id = u.id
+			GROUP BY u.id
+			ORDER BY u.created_at DESC`,
+		)
+		.all<UserSummary>();
 	return results;
 }
 
