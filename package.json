@@ -2,7 +2,10 @@
   "name": "share",
   "version": "0.1.0",
   "description": "My media sharing platform for personal use.",
-  "author": { "name": "potistudio", "email": "potistudio@proton.me" },
+  "author": {
+    "name": "potistudio",
+    "email": "potistudio@proton.me"
+  },
   "license": "MIT",
   "private": true,
   "type": "module",
@@ -22,6 +25,8 @@
     "gen": "wrangler types"
   },
   "devDependencies": {
+    "@simplewebauthn/browser": "^14.0.0",
+    "@simplewebauthn/server": "^14.0.2",
     "@sveltejs/adapter-cloudflare": "^7.2.8",
     "@sveltejs/kit": "^2.63.0",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
