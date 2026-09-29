@@ -1,19 +1,21 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
+import type { User } from "$lib/server/user";
+
 declare global {
 	namespace App {
 		interface Platform {
 			env: Env;
 			ctx: ExecutionContext;
 			caches: CacheStorage;
-			cf?: IncomingRequestCfProperties
+			cf?: IncomingRequestCfProperties;
 		}
 
 		// interface Error {}
-		// interface Locals {}
+		interface Locals {
+			user: User | null;
+		}
 		// interface PageData {}
 		// interface PageState {}
 	}
 }
-
-export {};
