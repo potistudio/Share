@@ -49,7 +49,15 @@ export async function listUsers(db: D1Database): Promise<UserSummary[]> {
 	return results;
 }
 
-// Owners cannot be deleted here so the site never ends up without an administrator
-export async function deleteGuest(db: D1Database, id: string): Promise<void> {
-	await db.prepare("DELETE FROM users WHERE id = ? AND role = 'guest'").bind(id).run();
+// Guards run inside the DELETE so the site can never end up without an owner, even under concurrent deletes
+export async function deleteUser(db: D1Database, id: string, actorId: string): Promise<boolean> {
+	const { meta } = await db
+		.prepare(
+			`DELETE FROM users
+			WHERE id = ?1 AND id != ?2
+				AND (role = 'guest' OR (SELECT COUNT(*) FROM users WHERE role = 'owner' AND id != ?1) > 0)`,
+		)
+		.bind(id, actorId)
+		.run();
+	return meta.changes === 1;
 }

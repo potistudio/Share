@@ -3,11 +3,12 @@ import type { SubmitFunction } from "@sveltejs/kit";
 import { enhance } from "$app/forms";
 import { formatDateTime } from "$lib/format";
 
-let { data } = $props();
+let { data, form } = $props();
 
-function confirmDelete(name: string): SubmitFunction {
+function confirmDelete(user: { name: string; role: string }): SubmitFunction {
+	const warning = user.role === "owner" ? "オーナー権限を持つユーザーです。" : "";
 	return ({ cancel }) => {
-		if (!confirm(`${name} さんを削除しますか？すぐにアクセスできなくなります。`)) cancel();
+		if (!confirm(`${warning}${user.name} さんを削除しますか？すぐにアクセスできなくなります。`)) cancel();
 	};
 }
 </script>
@@ -39,8 +40,10 @@ function confirmDelete(name: string): SubmitFunction {
 							<td>{formatDateTime(user.createdAt)}</td>
 							<td>{formatDateTime(user.lastLoginAt)}</td>
 							<td class="actions">
-								{#if user.role === "guest"}
-									<form method="POST" action="?/delete" use:enhance={confirmDelete(user.name)}>
+								{#if user.id === data.currentUserId}
+									<span class="self">あなた</span>
+								{:else}
+									<form method="POST" action="?/delete" use:enhance={confirmDelete(user)}>
 										<input type="hidden" name="id" value={user.id}>
 										<button type="submit" class="danger">削除</button>
 									</form>
@@ -54,4 +57,18 @@ function confirmDelete(name: string): SubmitFunction {
 	{:else}
 		<p class="empty">まだユーザーはいません</p>
 	{/if}
+	{#if form?.message}
+		<p role="alert" class="error">{form.message}</p>
+	{/if}
 </section>
+
+<style>
+.self {
+	color: var(--muted);
+}
+
+.error {
+	margin: 12px 0 0;
+	color: var(--critical);
+}
+</style>
