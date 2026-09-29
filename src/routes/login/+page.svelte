@@ -1,5 +1,6 @@
 <script lang="ts">
 import { type PublicKeyCredentialRequestOptionsJSON, startAuthentication } from "@simplewebauthn/browser";
+import { dev } from "$app/environment";
 import { goto } from "$app/navigation";
 import { postJSON } from "$lib/api";
 
@@ -31,4 +32,11 @@ async function login() {
 <button type="button" onclick={login} disabled={busy}>パスキーでログイン</button>
 {#if message}
 	<p role="alert">{message}</p>
+{/if}
+{#if dev}
+	<form method="POST" action="/login/dev">
+		<p>開発用ログイン</p>
+		<button type="submit" name="role" value="owner">オーナー</button>
+		<button type="submit" name="role" value="guest">ゲスト</button>
+	</form>
 {/if}
