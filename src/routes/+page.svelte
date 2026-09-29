@@ -20,7 +20,7 @@ const description = "ぽちのファイル共有システム";
 {#if data.user}
 	<p>こんにちは、{data.user.name} さん</p>
 	{#if data.user.role === "owner"}
-		<p><a href="/admin">招待とユーザーの管理</a></p>
+		<p><a href="/admin">管理ダッシュボード</a></p>
 	{/if}
 	<form method="POST" action="/logout">
 		<button type="submit">ログアウト</button>

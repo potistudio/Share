@@ -1,108 +1,116 @@
 <script lang="ts">
-import type { SubmitFunction } from "@sveltejs/kit";
-import { enhance } from "$app/forms";
+import StatTile from "$lib/admin/StatTile.svelte";
+import { formatDateTime } from "$lib/format";
 
-let { data, form } = $props();
-
-const formatDate = (time: number) => new Date(time).toLocaleString("ja-JP");
-
-function inviteStatus(invite: (typeof data.invites)[number]) {
-	if (invite.usedAt) return `使用済み（${invite.usedByName ?? "削除済みユーザー"}）`;
-	if (invite.expiresAt <= data.now) return "期限切れ";
-	return `${formatDate(invite.expiresAt)} まで有効`;
-}
-
-function confirmDelete(name: string): SubmitFunction {
-	return ({ cancel }) => {
-		if (!confirm(`${name} さんを削除しますか？すぐにアクセスできなくなります。`)) cancel();
-	};
-}
+let { data } = $props();
 </script>
 
 <svelte:head>
-	<title>管理 | ぽちファイル便</title>
+	<title>概要 | 管理 | ぽちファイル便</title>
 </svelte:head>
 
-<h1>招待とユーザーの管理</h1>
-<p><a href="/">トップへ戻る</a></p>
+<h1>概要</h1>
 
-<h2>招待リンクを作成</h2>
-<form method="POST" action="?/createInvite" use:enhance>
-	<label>
-		メモ（誰宛てか）
-		<input name="note" maxlength="100">
-	</label>
-	<label>
-		有効期限
-		<select name="days">
-			{#each data.inviteTtlDays as days (days)}
-				<option value={days} selected={days === 7}>{days}日</option>
-			{/each}
-		</select>
-	</label>
-	<button type="submit">作成</button>
-</form>
-{#if form?.inviteUrl}
-	<p>招待リンクを作成しました。このリンクは一度しか表示されません。</p>
-	<input readonly value={form.inviteUrl} size="80" onfocus={(e) => e.currentTarget.select()}>
-{:else if form?.message}
-	<p role="alert">{form.message}</p>
-{/if}
+<div class="stats">
+	<StatTile
+		label="ユーザー"
+		value={data.stats.owners + data.stats.guests}
+		note={`オーナー ${data.stats.owners}・ゲスト ${data.stats.guests}`}
+	/>
+	<StatTile label="直近7日の新規登録" value={data.stats.newUsers} />
+	<StatTile label="有効な招待" value={data.stats.activeInvites} />
+	<StatTile label="ログイン中のセッション" value={data.stats.activeSessions} />
+</div>
 
-<h2>招待一覧</h2>
-<table>
-	<thead>
-		<tr>
-			<th>メモ</th>
-			<th>作成日時</th>
-			<th>状態</th>
-			<th></th>
-		</tr>
-	</thead>
-	<tbody>
-		{#each data.invites as invite (invite.id)}
-			<tr>
-				<td>{invite.note || "-"}</td>
-				<td>{formatDate(invite.createdAt)}</td>
-				<td>{inviteStatus(invite)}</td>
-				<td>
-					{#if !invite.usedAt}
-						<form method="POST" action="?/revokeInvite" use:enhance>
-							<input type="hidden" name="id" value={invite.id}>
-							<button type="submit">取り消し</button>
-						</form>
-					{/if}
-				</td>
-			</tr>
-		{/each}
-	</tbody>
-</table>
+<div class="panels">
+	<section class="card">
+		<header>
+			<h2>最近の登録</h2>
+			<a href="/admin/users">すべて見る</a>
+		</header>
+		{#if data.recentUsers.length > 0}
+			<ul>
+				{#each data.recentUsers as user (user.id)}
+					<li>
+						<span>{user.name}</span>
+						<span class="meta">{formatDateTime(user.createdAt)}</span>
+					</li>
+				{/each}
+			</ul>
+		{:else}
+			<p class="empty">まだユーザーはいません</p>
+		{/if}
+	</section>
 
-<h2>ユーザー一覧</h2>
-<table>
-	<thead>
-		<tr>
-			<th>名前</th>
-			<th>権限</th>
-			<th>登録日時</th>
-			<th></th>
-		</tr>
-	</thead>
-	<tbody>
-		{#each data.users as user (user.id)}
-			<tr>
-				<td>{user.name}</td>
-				<td>{user.role === "owner" ? "オーナー" : "ゲスト"}</td>
-				<td>{formatDate(user.createdAt)}</td>
-				<td>
-					{#if user.role === "guest"}
-						<form method="POST" action="?/deleteUser" use:enhance={confirmDelete(user.name)}>
-							<input type="hidden" name="id" value={user.id}>
-							<button type="submit">削除</button>
-						</form>
-					{/if}
-				</td>
-			</tr>
-		{/each}
-	</tbody>
-</table>
+	<section class="card">
+		<header>
+			<h2>有効な招待</h2>
+			<a href="/admin/invites">招待を作成</a>
+		</header>
+		{#if data.activeInvites.length > 0}
+			<ul>
+				{#each data.activeInvites as invite (invite.id)}
+					<li>
+						<span>{invite.note || "（メモなし）"}</span>
+						<span class="meta">{formatDateTime(invite.expiresAt)} まで</span>
+					</li>
+				{/each}
+			</ul>
+		{:else}
+			<p class="empty">有効な招待はありません</p>
+		{/if}
+	</section>
+</div>
+
+<style>
+.stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 16px;
+	margin-bottom: 24px;
+}
+
+.panels {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+	gap: 16px;
+	align-items: start;
+}
+
+.panels :global(.card + .card) {
+	margin-top: 0;
+}
+
+header {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	font-size: 0.875rem;
+}
+
+header a {
+	color: var(--ink-2);
+}
+
+ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+li {
+	display: flex;
+	gap: 12px;
+	justify-content: space-between;
+	padding: 8px 0;
+	border-top: 1px solid var(--hairline);
+}
+
+.meta {
+	display: inline-flex;
+	gap: 8px;
+	color: var(--muted);
+	font-size: 0.875rem;
+	white-space: nowrap;
+}
+</style>
