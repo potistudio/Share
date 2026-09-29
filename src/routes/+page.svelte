@@ -1,4 +1,6 @@
 <script lang="ts">
+let { data } = $props();
+
 const title = "ぽちファイル便";
 const description = "ぽちのファイル共有システム";
 </script>
@@ -14,5 +16,13 @@ const description = "ぽちのファイル共有システム";
 	<meta property="og:type" content="website">
 </svelte:head>
 
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<h1>{title}</h1>
+{#if data.user}
+	<p>こんにちは、{data.user.name} さん</p>
+	{#if data.user.role === "owner"}
+		<p><a href="/admin">招待とユーザーの管理</a></p>
+	{/if}
+	<form method="POST" action="/logout">
+		<button type="submit">ログアウト</button>
+	</form>
+{/if}
