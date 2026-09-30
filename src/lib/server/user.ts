@@ -9,13 +9,14 @@ export type User = {
 	role: Role;
 };
 
+// Returns false when the single-owner index rejects a second owner (e.g. two owner invites redeemed at once)
 export async function createUser(
 	db: D1Database,
 	user: User & { credential: WebAuthnCredential; inviteId: string },
-): Promise<void> {
+): Promise<boolean> {
 	const now = Date.now();
 	const { credential } = user;
-	await db.batch([
+	const batch = db.batch([
 		db
 			.prepare("INSERT INTO users (id, name, role, created_at) VALUES (?, ?, ?, ?)")
 			.bind(user.id, user.name, user.role, now),
@@ -33,6 +34,13 @@ export async function createUser(
 			),
 		db.prepare("UPDATE invites SET used_by = ? WHERE id = ?").bind(user.id, user.inviteId),
 	]);
+	try {
+		await batch;
+		return true;
+	} catch (e) {
+		if (user.role === "owner" && String(e).includes("UNIQUE constraint failed: users.role")) return false;
+		throw e;
+	}
 }
 
 export type UserSummary = User & { createdAt: number; lastLoginAt: number | null };
@@ -49,15 +57,8 @@ export async function listUsers(db: D1Database): Promise<UserSummary[]> {
 	return results;
 }
 
-// Guards run inside the DELETE so the site can never end up without an owner, even under concurrent deletes
-export async function deleteUser(db: D1Database, id: string, actorId: string): Promise<boolean> {
-	const { meta } = await db
-		.prepare(
-			`DELETE FROM users
-			WHERE id = ?1 AND id != ?2
-				AND (role = 'guest' OR (SELECT COUNT(*) FROM users WHERE role = 'owner' AND id != ?1) > 0)`,
-		)
-		.bind(id, actorId)
-		.run();
+// The single owner is never deletable, so the site always keeps its administrator
+export async function deleteGuest(db: D1Database, id: string): Promise<boolean> {
+	const { meta } = await db.prepare("DELETE FROM users WHERE id = ? AND role = 'guest'").bind(id).run();
 	return meta.changes === 1;
 }

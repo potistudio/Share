@@ -34,9 +34,13 @@ export async function createInvite(
 	return token;
 }
 
+// Owner invites only work while no owner exists, since the site allows a single owner
+const USABLE =
+	"used_at IS NULL AND expires_at > ? AND (role = 'guest' OR NOT EXISTS (SELECT 1 FROM users WHERE role = 'owner'))";
+
 export async function findUsableInvite(db: D1Database, token: string): Promise<Pick<Invite, "id" | "role"> | null> {
 	return await db
-		.prepare("SELECT id, role FROM invites WHERE token_hash = ? AND used_at IS NULL AND expires_at > ?")
+		.prepare(`SELECT id, role FROM invites WHERE token_hash = ? AND ${USABLE}`)
 		.bind(await hashToken(token), Date.now())
 		.first<Pick<Invite, "id" | "role">>();
 }
@@ -45,7 +49,7 @@ export async function findUsableInvite(db: D1Database, token: string): Promise<P
 export async function claimInvite(db: D1Database, id: string): Promise<boolean> {
 	const now = Date.now();
 	const { meta } = await db
-		.prepare("UPDATE invites SET used_at = ? WHERE id = ? AND used_at IS NULL AND expires_at > ?")
+		.prepare(`UPDATE invites SET used_at = ? WHERE id = ? AND ${USABLE}`)
 		.bind(now, id, now)
 		.run();
 	return meta.changes === 1;

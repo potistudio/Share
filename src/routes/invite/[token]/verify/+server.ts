@@ -28,13 +28,14 @@ export const POST: RequestHandler = async (event) => {
 	if (!(await claimInvite(db, invite.id))) error(409, "この招待リンクはすでに使用されています");
 
 	const { userId, name } = challenge.data;
-	await createUser(db, {
+	const created = await createUser(db, {
 		id: userId,
 		name,
 		role: invite.role,
 		credential: verification.registrationInfo.credential,
 		inviteId: invite.id,
 	});
+	if (!created) error(409, "オーナーはすでに登録されています");
 	await createSession(db, event.cookies, userId);
 	return json({ ok: true });
 };
