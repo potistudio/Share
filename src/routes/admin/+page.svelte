@@ -1,5 +1,4 @@
 <script lang="ts">
-import StatTile from "$lib/admin/StatTile.svelte";
 import { formatDateTime } from "$lib/format";
 
 let { data } = $props();
@@ -10,17 +9,6 @@ let { data } = $props();
 </svelte:head>
 
 <h1>概要</h1>
-
-<div class="stats">
-	<StatTile
-		label="ユーザー"
-		value={data.stats.owners + data.stats.guests}
-		note={`オーナー ${data.stats.owners}・ゲスト ${data.stats.guests}`}
-	/>
-	<StatTile label="直近7日の新規登録" value={data.stats.newUsers} />
-	<StatTile label="有効な招待" value={data.stats.activeInvites} />
-	<StatTile label="ログイン中のセッション" value={data.stats.activeSessions} />
-</div>
 
 <div class="panels">
 	<section class="card">
@@ -63,13 +51,6 @@ let { data } = $props();
 </div>
 
 <style>
-.stats {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-	gap: 16px;
-	margin-bottom: 24px;
-}
-
 .panels {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
