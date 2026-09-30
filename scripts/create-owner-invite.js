@@ -13,13 +13,30 @@ const token = randomBytes(32).toString("base64url");
 const tokenHash = createHash("sha256").update(token).digest("base64url");
 const now = Date.now();
 
+// The site allows a single owner, so the invite is only inserted while none exists
 const sql = `INSERT INTO invites (id, token_hash, role, note, created_at, expires_at)
-VALUES ('${randomUUID()}', '${tokenHash}', 'owner', 'bootstrap', ${now}, ${now + DAY});`;
+SELECT '${randomUUID()}', '${tokenHash}', 'owner', 'bootstrap', ${now}, ${now + DAY}
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE role = 'owner')
+RETURNING id;`;
 
-execFileSync(
+const output = execFileSync(
 	process.execPath,
-	["node_modules/wrangler/bin/wrangler.js", "d1", "execute", "DB", remote ? "--remote" : "--local", "--command", sql],
-	{ stdio: "inherit" },
+	[
+		"node_modules/wrangler/bin/wrangler.js",
+		"d1",
+		"execute",
+		"DB",
+		remote ? "--remote" : "--local",
+		"--json",
+		"--command",
+		sql,
+	],
+	{ encoding: "utf8", stdio: ["inherit", "pipe", "inherit"] },
 );
 
-console.log(`\nOwner invite (valid for 24 hours):\n${origin}/invite/${token}`);
+if (JSON.parse(output)[0].results.length === 0) {
+	console.error("An owner already exists. Only one owner is allowed.");
+	process.exit(1);
+}
+
+console.log(`Owner invite (valid for 24 hours):\n${origin}/invite/${token}`);

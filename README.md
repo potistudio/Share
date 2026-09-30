@@ -10,4 +10,4 @@ pnpm db:migrate      # or db:migrate:remote
 pnpm invite:owner    # or invite:owner --remote
 ```
 
-Open the printed link to register the first owner. Further invites are issued from `/admin`.
+Open the printed link to register the owner. The site has exactly one owner, so `invite:owner` refuses once one exists. Guest invites are issued from `/admin`.
