@@ -11,7 +11,8 @@
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "share"
+			"database_name": "share",
+			"database_id": "8bd32745-7c23-4506-8d44-ebe56606e370"
 		}
 	],
 	"workers_dev": true,
