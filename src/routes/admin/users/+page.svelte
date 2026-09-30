@@ -5,10 +5,9 @@ import { formatDateTime } from "$lib/format";
 
 let { data, form } = $props();
 
-function confirmDelete(user: { name: string; role: string }): SubmitFunction {
-	const warning = user.role === "owner" ? "オーナー権限を持つユーザーです。" : "";
+function confirmDelete(name: string): SubmitFunction {
 	return ({ cancel }) => {
-		if (!confirm(`${warning}${user.name} さんを削除しますか？すぐにアクセスできなくなります。`)) cancel();
+		if (!confirm(`${name} さんを削除しますか？すぐにアクセスできなくなります。`)) cancel();
 	};
 }
 </script>
@@ -40,10 +39,10 @@ function confirmDelete(user: { name: string; role: string }): SubmitFunction {
 							<td>{formatDateTime(user.createdAt)}</td>
 							<td>{formatDateTime(user.lastLoginAt)}</td>
 							<td class="actions">
-								{#if user.id === data.currentUserId}
+								{#if user.role === "owner"}
 									<span class="self">あなた</span>
 								{:else}
-									<form method="POST" action="?/delete" use:enhance={confirmDelete(user)}>
+									<form method="POST" action="?/delete" use:enhance={confirmDelete(user.name)}>
 										<input type="hidden" name="id" value={user.id}>
 										<button type="submit" class="danger">削除</button>
 									</form>

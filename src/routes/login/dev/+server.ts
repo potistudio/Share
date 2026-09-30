@@ -24,6 +24,9 @@ export const POST: RequestHandler = async (event) => {
 		.prepare("INSERT OR IGNORE INTO users (id, name, role, created_at) VALUES (?, ?, ?, ?)")
 		.bind(user.id, user.name, role, Date.now())
 		.run();
-	await createSession(db, event.cookies, user.id);
+	// The insert is ignored when a real owner already holds the single owner slot, so sign in as whoever owns it
+	const owner =
+		role === "owner" && (await db.prepare("SELECT id FROM users WHERE role = 'owner'").first<{ id: string }>());
+	await createSession(db, event.cookies, owner ? owner.id : user.id);
 	redirect(303, "/");
 };
