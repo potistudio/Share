@@ -15,6 +15,12 @@
 			"database_id": "8bd32745-7c23-4506-8d44-ebe56606e370"
 		}
 	],
+	"routes": [
+		{
+			"pattern": "share.poti.studio",
+			"custom_domain": true
+		}
+	],
 	"workers_dev": true,
 	"preview_urls": true
 }
